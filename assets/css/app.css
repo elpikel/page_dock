@@ -102,4 +102,139 @@
 /* Make LiveView wrapper divs transparent for layout */
 [data-phx-session], [data-phx-teleported-src] { display: contents }
 
+/* ── Pagedock landing page theme ─────────────────────────────────────────
+   Ported from the standalone assets/tailwind.config.js into this project's
+   Tailwind v4 CSS-first pipeline (no Node build). Colors are driven by CSS
+   variables so the same utilities render in light (default) and dark. Dark
+   is keyed off [data-theme=dark] to match this app's theme toggle, and .dark
+   to honour the original config's darkMode: "class". */
+
+@theme inline {
+  --color-bg: rgb(var(--c-bg));
+  --color-surface: rgb(var(--c-surface));
+  --color-raised: rgb(var(--c-raised));
+  --color-text: rgb(var(--c-text));
+  --color-muted: rgb(var(--c-muted));
+  --color-faint: rgb(var(--c-faint));
+  --color-border: var(--c-border);
+  --color-border2: var(--c-border2);
+  --color-accent: #5e6ad2;
+  --color-accent-soft: var(--c-accent-soft);
+  --color-star: rgb(var(--c-star));
+  --color-ok: rgb(var(--c-ok));
+
+  --font-sans: Inter, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --shadow-card: var(--sh-card);
+  --shadow-btn: var(--sh-btn);
+
+  --animate-blink: blink 1s steps(1) infinite;
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+:root {
+  --c-bg: 255 255 255;
+  --c-surface: 255 255 255;
+  --c-raised: 247 248 248;
+  --c-text: 13 14 16;
+  --c-muted: 107 111 118;
+  --c-faint: 154 158 165;
+  --c-border: rgba(0, 0, 0, 0.08);
+  --c-border2: rgba(0, 0, 0, 0.16);
+  --c-accent-soft: rgba(94, 106, 210, 0.12);
+  --c-star: 224 176 0;
+  --c-ok: 46 158 103;
+  --sh-card: 0 1px 2px rgba(0, 0, 0, 0.04), 0 16px 40px -24px rgba(13, 14, 16, 0.25);
+  --sh-btn: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+:where(.dark, [data-theme="dark"]) {
+  --c-bg: 8 9 10;
+  --c-surface: 15 16 17;
+  --c-raised: 21 22 24;
+  --c-text: 247 248 248;
+  --c-muted: 138 143 152;
+  --c-faint: 92 96 103;
+  --c-border: rgba(255, 255, 255, 0.08);
+  --c-border2: rgba(255, 255, 255, 0.14);
+  --c-accent-soft: rgba(94, 106, 210, 0.18);
+  --c-star: 245 197 24;
+  --c-ok: 76 195 138;
+  --sh-card: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 24px 48px -24px rgba(0, 0, 0, 0.8);
+  --sh-btn: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+@layer base {
+  html { scroll-behavior: smooth; }
+  body { font-feature-settings: "cv11", "ss01"; }
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+}
+
+@layer components {
+  .h-display { @apply font-medium tracking-[-0.03em] text-text; }
+  .glow {
+    background:
+      radial-gradient(60% 50% at 50% 0%, rgba(94, 106, 210, 0.1), transparent 70%),
+      radial-gradient(40% 30% at 80% 10%, rgba(94, 106, 210, 0.06), transparent 70%);
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center h-10 px-4 rounded-lg bg-text text-bg text-sm font-medium shadow-btn hover:bg-[#2a2c30] transition-colors;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center h-10 px-4 rounded-lg bg-surface text-text text-sm font-medium border border-border hover:bg-raised hover:border-border2 transition-colors;
+  }
+  .card { @apply bg-surface rounded-xl border border-border shadow-card; }
+  .fact {
+    @apply grid grid-cols-1 md:grid-cols-[160px_1fr] gap-1 md:gap-6 py-4 border-b border-border text-[15px];
+  }
+  .li { @apply flex items-start gap-3 py-2.5 text-[15px] text-text; }
+  .li-soon { @apply flex items-start gap-3 py-2.5 text-[15px] text-muted; }
+}
+
+/* Isometric Gdańsk cranes in the hero (plain CSS, driven by the SVG's ids). */
+#cranes .face {
+  fill: #ffffff;
+  stroke: rgba(13, 14, 16, 0.14);
+  stroke-width: 1;
+  stroke-linejoin: round;
+}
+#cranes .face.l { fill: #fafafb; }
+#cranes .face.r { fill: #f4f5f6; }
+#cranes .cable { stroke: rgba(13, 14, 16, 0.28); stroke-dasharray: 2 3; }
+#cranes .load .face { stroke: rgba(94, 106, 210, 0.6); }
+#cranes .load .face.t { fill: rgba(94, 106, 210, 0.06); }
+#cranes .load { animation: hoist 7s ease-in-out infinite; }
+#cranes .crane.b .load { animation-delay: -2.3s; }
+#cranes .crane.c .load { animation-delay: -4.6s; }
+
+@keyframes hoist {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-22px); }
+}
+
+.dark #cranes .face,
+[data-theme="dark"] #cranes .face {
+  fill: #0b0c0d;
+  stroke: rgba(255, 255, 255, 0.12);
+}
+.dark #cranes .face.l,
+[data-theme="dark"] #cranes .face.l { fill: #0b0c0d; }
+.dark #cranes .face.r,
+[data-theme="dark"] #cranes .face.r { fill: #08090a; }
+.dark #cranes .cable,
+[data-theme="dark"] #cranes .cable { stroke: rgba(255, 255, 255, 0.22); }
+
+@media (prefers-reduced-motion: reduce) {
+  #cranes .load { animation: none; }
+  #cranes animate { display: none; }
+}
+
 /* This file is for your main application CSS */
