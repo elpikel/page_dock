@@ -36,6 +36,13 @@ if config_env() != :test do
         "http://localhost:4000/auth/github/callback"
 end
 
+# Public base URL that GitHub uses to deliver webhooks. Locally this is your
+# tunnel (e.g. an ngrok https URL); GitHub cannot reach localhost directly.
+# Registered webhooks become `<WEBHOOK_BASE_URL>/webhooks/github/<site_id>`.
+if webhook_base_url = System.get_env("WEBHOOK_BASE_URL") do
+  config :page_dock, :sites, webhook_base_url: webhook_base_url
+end
+
 # Cloak vault: encrypts sensitive columns (e.g. GitHub tokens) at rest.
 # CLOAK_KEY is a base64-encoded 32-byte key (generate with
 # `Base.encode64(:crypto.strong_rand_bytes(32))`). A fixed key is used in

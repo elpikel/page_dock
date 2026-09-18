@@ -24,6 +24,17 @@ config :page_dock,
   ecto_repos: [PageDock.Repo],
   generators: [timestamp_type: :utc_datetime]
 
+# Background jobs (deploys)
+config :page_dock, Oban,
+  engine: Oban.Engines.Basic,
+  queues: [deploys: 5],
+  repo: PageDock.Repo
+
+# Hosted sites: base host for `<slug>.<host>` and where published files live.
+config :page_dock, :sites,
+  host: "pagedock.eu",
+  deploy_root: "priv/deploys"
+
 # Configure the endpoint
 config :page_dock, PageDockWeb.Endpoint,
   url: [host: "localhost"],

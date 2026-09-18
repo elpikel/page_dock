@@ -1,6 +1,8 @@
 defmodule PageDockWeb.SiteLive.Index do
   use PageDockWeb, :live_view
 
+  alias PageDock.Deployments.Storage
+  alias PageDock.Github
   alias PageDock.Sites
 
   @impl true
@@ -48,7 +50,7 @@ defmodule PageDockWeb.SiteLive.Index do
               </p>
             </div>
             <div class="flex items-center gap-3 shrink-0">
-              <span class="text-[13px] text-faint font-mono">{site.slug}.pagedock.eu</span>
+              <span class="text-[13px] text-faint font-mono">{Sites.public_domain(site)}</span>
               <.link
                 phx-click={JS.push("delete", value: %{id: site.id})}
                 data-confirm={"Delete #{site.name}? This cannot be undone."}
@@ -80,7 +82,10 @@ defmodule PageDockWeb.SiteLive.Index do
   def handle_event("delete", %{"id" => id}, socket) do
     scope = socket.assigns.current_scope
     site = Sites.get_site!(scope, id)
+
+    Sites.deregister_webhook(site, Github.get_connected_account(scope))
     {:ok, _} = Sites.delete_site(scope, site)
+    Storage.delete(site.slug)
 
     {:noreply,
      socket

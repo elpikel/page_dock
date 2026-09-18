@@ -25,16 +25,22 @@ defmodule PageDockWeb.SiteLive.FormTest do
     github_account_fixture(user)
 
     Req.Test.stub(PageDock.Github, fn conn ->
-      Req.Test.json(conn, [
-        %{
-          "id" => 7,
-          "name" => "blog",
-          "full_name" => "me/blog",
-          "owner" => %{"login" => "me"},
-          "default_branch" => "main",
-          "private" => false
-        }
-      ])
+      case conn.request_path do
+        "/user/repos" ->
+          Req.Test.json(conn, [
+            %{
+              "id" => 7,
+              "name" => "blog",
+              "full_name" => "me/blog",
+              "owner" => %{"login" => "me"},
+              "default_branch" => "main",
+              "private" => false
+            }
+          ])
+
+        "/repos/me/blog/hooks" ->
+          conn |> Plug.Conn.put_status(201) |> Req.Test.json(%{"id" => 999})
+      end
     end)
 
     {:ok, lv, _html} = live(conn, ~p"/sites/new")
@@ -49,6 +55,7 @@ defmodule PageDockWeb.SiteLive.FormTest do
     assert site.repo_owner == "me"
     assert site.repo_name == "blog"
     assert site.slug == "my-blog"
+    assert site.webhook_id == 999
     assert_redirect(lv, ~p"/sites/#{site}")
   end
 end

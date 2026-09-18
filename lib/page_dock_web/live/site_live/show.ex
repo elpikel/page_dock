@@ -1,6 +1,9 @@
 defmodule PageDockWeb.SiteLive.Show do
   use PageDockWeb, :live_view
 
+  alias PageDock.Deployments
+  alias PageDock.Deployments.Storage
+  alias PageDock.Github
   alias PageDock.Sites
 
   @impl true
@@ -11,8 +14,20 @@ defmodule PageDockWeb.SiteLive.Show do
         <.link navigate={~p"/sites"} class="text-[13px] text-muted hover:text-text no-underline">
           ← Back to sites
         </.link>
-        <h1 class="text-xl font-medium tracking-[-0.02em] text-text mt-2">{@site.name}</h1>
-        <p class="mt-1 text-[14px] text-muted font-mono">{@site.slug}.pagedock.eu</p>
+        <div class="flex items-start justify-between gap-4 mt-2">
+          <div>
+            <h1 class="text-xl font-medium tracking-[-0.02em] text-text">{@site.name}</h1>
+            <p class="mt-1 text-[14px] text-muted font-mono">{Sites.public_domain(@site)}</p>
+          </div>
+          <.button
+            phx-click="deploy"
+            phx-disable-with="Queuing..."
+            class="btn-primary h-9 px-3 shrink-0"
+            id="deploy-now"
+          >
+            Deploy now
+          </.button>
+        </div>
       </div>
 
       <div class="card divide-y divide-border">
@@ -32,10 +47,33 @@ defmodule PageDockWeb.SiteLive.Show do
           <span class="text-text font-mono">{@site.default_branch}</span>
         </div>
         <div class="grid grid-cols-[160px_1fr] gap-4 p-5 text-[14px]">
-          <span class="text-muted">Deploys</span>
-          <span class="text-muted">
-            Automatic deploys on push are coming soon.
+          <span class="text-muted">Webhook</span>
+          <span class={["font-medium", if(@site.webhook_id, do: "text-ok", else: "text-muted")]}>
+            {if @site.webhook_id, do: "Active — pushes deploy automatically", else: "Not set up"}
           </span>
+        </div>
+      </div>
+
+      <div class="mt-8">
+        <h2 class="text-[15px] font-medium text-text mb-3">Deployments</h2>
+        <div :if={@deployments == []} class="card p-6 text-[14px] text-muted" id="deployments-empty">
+          No deployments yet. Push to <span class="font-mono">{@site.default_branch}</span>
+          to trigger one.
+        </div>
+        <div :if={@deployments != []} class="card divide-y divide-border" id="deployments">
+          <div
+            :for={deployment <- @deployments}
+            id={"deployment-#{deployment.id}"}
+            class="flex items-center justify-between gap-4 p-4 text-[14px]"
+          >
+            <div class="min-w-0">
+              <span class="font-mono text-text">{String.slice(deployment.commit_sha, 0, 7)}</span>
+              <span class="text-muted"> ·   {deployment.ref}</span>
+            </div>
+            <span class={["text-[13px] font-medium", status_color(deployment.status)]}>
+              {deployment.status}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -63,18 +101,45 @@ defmodule PageDockWeb.SiteLive.Show do
          |> push_navigate(to: ~p"/sites")}
 
       site ->
-        {:ok, socket |> assign(:page_title, site.name) |> assign(:site, site)}
+        {:ok,
+         socket
+         |> assign(:page_title, site.name)
+         |> assign(:site, site)
+         |> assign(:deployments, Deployments.list_deployments(site))}
     end
   end
 
+  defp status_color("success"), do: "text-ok"
+  defp status_color("failed"), do: "text-error"
+  defp status_color(_), do: "text-muted"
+
   @impl true
+  def handle_event("deploy", _params, socket) do
+    site = socket.assigns.site
+
+    case Deployments.deploy(site, %{commit_sha: site.default_branch, ref: site.default_branch}) do
+      {:ok, _deployment} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "Deploy queued for #{site.default_branch}.")
+         |> assign(:deployments, Deployments.list_deployments(site))}
+
+      {:error, _reason} ->
+        {:noreply, put_flash(socket, :error, "Couldn't queue the deploy. Please try again.")}
+    end
+  end
+
   def handle_event("delete", _params, socket) do
     scope = socket.assigns.current_scope
-    {:ok, _} = Sites.delete_site(scope, socket.assigns.site)
+    site = socket.assigns.site
+
+    Sites.deregister_webhook(site, Github.get_connected_account(scope))
+    {:ok, _} = Sites.delete_site(scope, site)
+    Storage.delete(site.slug)
 
     {:noreply,
      socket
-     |> put_flash(:info, "Deleted #{socket.assigns.site.name}.")
+     |> put_flash(:info, "Deleted #{site.name}.")
      |> push_navigate(to: ~p"/sites")}
   end
 end

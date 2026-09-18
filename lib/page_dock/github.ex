@@ -237,6 +237,54 @@ defmodule PageDock.Github do
     }
   end
 
+  ## Webhooks & source
+
+  @doc """
+  Registers a `push` webhook on the repo, delivering to `url` and signed with
+  `secret`. Returns `{:ok, hook_id}` or `{:error, reason}`.
+  """
+  def create_push_webhook(%GithubAccount{access_token: token}, owner, repo, url, secret) do
+    body = %{
+      name: "web",
+      active: true,
+      events: ["push"],
+      config: %{url: url, content_type: "json", secret: secret, insecure_ssl: "0"}
+    }
+
+    opts = [url: @api_url <> "/repos/#{owner}/#{repo}/hooks", json: body]
+
+    case opts |> auth_request(token) |> Req.post() do
+      {:ok, %{status: 201, body: %{"id" => id}}} -> {:ok, id}
+      {:ok, %{status: status}} -> {:error, {:webhook_create, status}}
+      {:error, exception} -> {:error, exception}
+    end
+  end
+
+  @doc "Deletes a repo webhook. A missing hook (404) is treated as success."
+  def delete_webhook(%GithubAccount{access_token: token}, owner, repo, hook_id) do
+    opts = [url: @api_url <> "/repos/#{owner}/#{repo}/hooks/#{hook_id}"]
+
+    case opts |> auth_request(token) |> Req.delete() do
+      {:ok, %{status: status}} when status in [204, 404] -> :ok
+      {:ok, %{status: status}} -> {:error, {:webhook_delete, status}}
+      {:error, exception} -> {:error, exception}
+    end
+  end
+
+  @doc """
+  Downloads the repo contents at `ref` as a gzipped tarball (raw bytes).
+  Returns `{:ok, binary}` or `{:error, reason}`.
+  """
+  def fetch_tarball(%GithubAccount{access_token: token}, owner, repo, ref) do
+    opts = [url: @api_url <> "/repos/#{owner}/#{repo}/tarball/#{ref}", decode_body: false]
+
+    case opts |> auth_request(token) |> Req.get() do
+      {:ok, %{status: 200, body: body}} when is_binary(body) -> {:ok, body}
+      {:ok, %{status: status}} -> {:error, {:tarball, status}}
+      {:error, exception} -> {:error, exception}
+    end
+  end
+
   ## Persistence
 
   defp upsert_account(%User{} = user, attrs) do

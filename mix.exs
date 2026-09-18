@@ -63,6 +63,7 @@ defmodule PageDock.MixProject do
       {:req, "~> 0.5"},
       {:cloak, "~> 1.1"},
       {:cloak_ecto, "~> 1.3"},
+      {:oban, "~> 2.18"},
       {:telemetry_metrics, "~> 1.0"},
       {:telemetry_poller, "~> 1.0"},
       {:gettext, "~> 1.0"},

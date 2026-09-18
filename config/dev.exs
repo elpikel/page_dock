@@ -1,5 +1,10 @@
 import Config
 
+# Locally, sites are served at `<slug>.localhost` (browsers resolve *.localhost
+# to 127.0.0.1). GitHub can't reach localhost, so set GITHUB_WEBHOOK-style
+# `:webhook_base_url` (e.g. an ngrok URL) when testing deploys end to end.
+config :page_dock, :sites, host: "localhost"
+
 # Configure your database
 config :page_dock, PageDock.Repo,
   username: "postgres",

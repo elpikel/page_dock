@@ -17,6 +17,13 @@ defmodule PageDockWeb.Router do
     plug :accepts, ["json"]
   end
 
+  # Inbound GitHub webhooks: no session/CSRF; verified by per-site HMAC.
+  scope "/webhooks", PageDockWeb do
+    pipe_through :api
+
+    post "/github/:site_id", GithubWebhookController, :create
+  end
+
   scope "/", PageDockWeb do
     pipe_through :browser
 

@@ -35,7 +35,7 @@ defmodule PageDockWeb.SiteLive.Form do
             <div>
               <.input field={@form[:slug]} type="text" label="Address" />
               <p class="mt-1 text-[13px] text-faint">
-                {@form[:slug].value || "your-site"}.pagedock.eu
+                {Sites.public_domain(@form[:slug].value || "your-site")}
               </p>
             </div>
 
@@ -104,11 +104,31 @@ defmodule PageDockWeb.SiteLive.Form do
       {:ok, site} ->
         {:noreply,
          socket
-         |> put_flash(:info, "Linked #{site.name}.")
+         |> put_flash(:info, webhook_flash(site, socket.assigns.github_account))
          |> push_navigate(to: ~p"/sites/#{site}")}
 
       {:error, changeset} ->
         {:noreply, assign_form(socket, changeset)}
+    end
+  end
+
+  # Register the push webhook so future pushes deploy. Best-effort: if GitHub
+  # rejects it, the site is still created and the user is told to reconnect.
+  defp webhook_flash(site, account) do
+    case Sites.register_webhook(site, account, webhook_url(site)) do
+      {:ok, _site} ->
+        "Linked #{site.name}. Pushes to #{site.default_branch} will deploy automatically."
+
+      {:error, _reason} ->
+        "Linked #{site.name}, but couldn't set up automatic deploys. " <>
+          "Check your GitHub permissions and try reconnecting."
+    end
+  end
+
+  defp webhook_url(site) do
+    case Application.get_env(:page_dock, :sites, [])[:webhook_base_url] do
+      nil -> url(~p"/webhooks/github/#{site.id}")
+      base -> base <> ~p"/webhooks/github/#{site.id}"
     end
   end
 

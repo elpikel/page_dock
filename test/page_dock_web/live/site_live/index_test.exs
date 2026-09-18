@@ -19,7 +19,7 @@ defmodule PageDockWeb.SiteLive.IndexTest do
 
     assert has_element?(lv, "#sites")
     assert html =~ site.name
-    assert html =~ "#{site.slug}.pagedock.eu"
+    assert html =~ "#{site.slug}.pagedock.test"
   end
 
   test "requires authentication", %{conn: _conn} do

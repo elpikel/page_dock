@@ -1,7 +1,7 @@
 defmodule PageDock.Sites.Site do
   @moduledoc """
   A site is a GitHub repository linked to a user and served at
-  `<slug>.pagedock.eu`. Pushes to `default_branch` will trigger deploys (Phase 4).
+  `<slug>.pagedock.eu`. Pushes to `default_branch` trigger deploys.
   """
   use Ecto.Schema
   import Ecto.Changeset
@@ -16,6 +16,7 @@ defmodule PageDock.Sites.Site do
     field :repo_id, :integer
     field :default_branch, :string, default: "main"
     field :webhook_id, :integer
+    field :webhook_secret, :string, redact: true
 
     belongs_to :user, PageDock.Accounts.User
 
@@ -33,6 +34,7 @@ defmodule PageDock.Sites.Site do
     |> cast(attrs, [:name, :slug, :repo_owner, :repo_name, :repo_id, :default_branch])
     |> update_change(:slug, &normalize_slug/1)
     |> maybe_derive_slug()
+    |> maybe_put_webhook_secret()
     |> validate_required([:name, :slug, :repo_owner, :repo_name, :repo_id, :default_branch])
     |> validate_length(:name, min: 1, max: 100)
     |> validate_length(:slug, min: 2, max: 63)
@@ -68,4 +70,15 @@ defmodule PageDock.Sites.Site do
 
   defp normalize_slug(nil), do: nil
   defp normalize_slug(slug), do: slugify(slug)
+
+  defp maybe_put_webhook_secret(changeset) do
+    if get_field(changeset, :webhook_secret) do
+      changeset
+    else
+      put_change(changeset, :webhook_secret, gen_webhook_secret())
+    end
+  end
+
+  defp gen_webhook_secret,
+    do: 32 |> :crypto.strong_rand_bytes() |> Base.url_encode64(padding: false)
 end

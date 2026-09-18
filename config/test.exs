@@ -23,6 +23,14 @@ config :page_dock, PageDockWeb.Endpoint,
   secret_key_base: "bG33+2bdNCP2DQJPGsgizhUabYQ8cuygFl9zFg7+60ERGazofB6caAen7/uC1iUB",
   server: false
 
+# Run Oban jobs inline-manually in tests (assert with Oban.Testing helpers)
+config :page_dock, Oban, testing: :manual
+
+# Hosted sites in test: an isolated temp deploy root and a distinct base host.
+config :page_dock, :sites,
+  host: "pagedock.test",
+  deploy_root: Path.join(System.tmp_dir!(), "page_dock_test_deploys")
+
 # In test we don't send emails
 config :page_dock, PageDock.Mailer, adapter: Swoosh.Adapters.Test
 

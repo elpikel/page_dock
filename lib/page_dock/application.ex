@@ -13,6 +13,7 @@ defmodule PageDock.Application do
       PageDock.Repo,
       {DNSCluster, query: Application.get_env(:page_dock, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: PageDock.PubSub},
+      {Oban, Application.fetch_env!(:page_dock, Oban)},
       # Start a worker by calling: PageDock.Worker.start_link(arg)
       # {PageDock.Worker, arg},
       # Start to serve requests, typically the last entry

@@ -7,6 +7,8 @@ defmodule PageDock.Sites do
   import Ecto.Query, warn: false
 
   alias PageDock.Accounts.Scope
+  alias PageDock.Github
+  alias PageDock.Github.GithubAccount
   alias PageDock.Repo
   alias PageDock.Sites.Site
 
@@ -24,6 +26,22 @@ defmodule PageDock.Sites do
   def get_site(%Scope{user: user}, id) do
     Repo.get_by(Site, id: id, user_id: user.id)
   end
+
+  @doc """
+  Fetches a site by id, unscoped. Only for the webhook endpoint, whose
+  authenticity is established by the per-site HMAC signature, not by a session.
+  """
+  def get_site_by_id(id), do: Repo.get(Site, id)
+
+  @doc "Fetches a site by its public slug (subdomain), unscoped. For serving."
+  def get_site_by_slug(slug) when is_binary(slug), do: Repo.get_by(Site, slug: slug)
+
+  @doc "The base host that sites are served under (env-dependent)."
+  def public_host, do: Application.get_env(:page_dock, :sites, [])[:host] || "pagedock.eu"
+
+  @doc "A site's full public host, e.g. `my-site.pagedock.eu`."
+  def public_domain(%Site{slug: slug}), do: "#{slug}.#{public_host()}"
+  def public_domain(slug) when is_binary(slug), do: "#{slug}.#{public_host()}"
 
   @doc "Creates a site owned by the scope user."
   def create_site(%Scope{user: user}, attrs) do
@@ -50,4 +68,32 @@ defmodule PageDock.Sites do
   def change_site(%Scope{}, %Site{} = site, attrs \\ %{}) do
     Site.changeset(site, attrs)
   end
+
+  @doc """
+  Registers a GitHub push webhook for the site, delivering to `callback_url`,
+  and stores the returned hook id. Returns `{:ok, site}` or `{:error, reason}`.
+  """
+  def register_webhook(%Site{} = site, %GithubAccount{} = account, callback_url) do
+    with {:ok, hook_id} <-
+           Github.create_push_webhook(
+             account,
+             site.repo_owner,
+             site.repo_name,
+             callback_url,
+             site.webhook_secret
+           ) do
+      site
+      |> Ecto.Changeset.change(webhook_id: hook_id)
+      |> Repo.update()
+    end
+  end
+
+  @doc "Removes the site's GitHub webhook, if one is registered. Best-effort."
+  def deregister_webhook(%Site{webhook_id: nil}, _account), do: :ok
+
+  def deregister_webhook(%Site{} = site, %GithubAccount{} = account) do
+    Github.delete_webhook(account, site.repo_owner, site.repo_name, site.webhook_id)
+  end
+
+  def deregister_webhook(%Site{}, nil), do: :ok
 end

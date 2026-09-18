@@ -1,9 +1,12 @@
 defmodule PageDockWeb.SiteLive.ShowTest do
   use PageDockWeb.ConnCase, async: true
+  use Oban.Testing, repo: PageDock.Repo
 
   import Phoenix.LiveViewTest
   import PageDock.AccountsFixtures
   import PageDock.SitesFixtures
+
+  alias PageDock.Deployments.DeployWorker
 
   setup :register_and_log_in_user
 
@@ -15,6 +18,16 @@ defmodule PageDockWeb.SiteLive.ShowTest do
     assert html =~ site.name
     assert html =~ "#{site.repo_owner}/#{site.repo_name}"
     assert html =~ site.default_branch
+  end
+
+  test "Deploy now enqueues a deploy", %{conn: conn, user: user} do
+    site = site_fixture(user)
+
+    {:ok, lv, _html} = live(conn, ~p"/sites/#{site}")
+    lv |> element("#deploy-now") |> render_click()
+
+    assert_enqueued(worker: DeployWorker)
+    assert render(lv) =~ "Deploy queued"
   end
 
   test "redirects when the site does not belong to the user", %{conn: conn} do
