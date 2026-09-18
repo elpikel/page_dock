@@ -32,8 +32,26 @@
           >
             What's included
           </a>
-          <a href="#signup" class="ml-2 btn-secondary h-8 px-3 no-underline">Log in</a>
-          <a href="#signup" class="btn-primary h-8 px-3 no-underline">Sign up</a>
+          <%= if @current_scope do %>
+            <span class="hidden sm:inline px-3 text-[13px] text-muted max-w-[180px] truncate">
+              {@current_scope.user.email}
+            </span>
+            <a href={~p"/users/settings"} class="ml-2 btn-secondary h-8 px-3 no-underline">
+              Settings
+            </a>
+            <.link
+              href={~p"/users/log-out"}
+              method="delete"
+              class="btn-primary h-8 px-3 no-underline"
+            >
+              Log out
+            </.link>
+          <% else %>
+            <a href={~p"/users/log-in"} class="ml-2 btn-secondary h-8 px-3 no-underline">
+              Log in
+            </a>
+            <a href={~p"/users/register"} class="btn-primary h-8 px-3 no-underline">Sign up</a>
+          <% end %>
         </nav>
       </header>
 
@@ -286,7 +304,9 @@
             Connect a GitHub repository and every push deploys your static site to a pagedock.eu address over HTTPS. Servers in Germany, nothing routed through the US.
           </p>
           <div class="flex flex-wrap gap-3">
-            <a href="#signup" class="btn-primary no-underline">Create a free account</a>
+            <a href={~p"/users/register"} class="btn-primary no-underline">
+              Create a free account
+            </a>
             <a href="#how" class="btn-secondary no-underline">See how it works</a>
           </div>
         </div>

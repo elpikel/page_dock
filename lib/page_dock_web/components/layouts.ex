@@ -35,38 +35,56 @@ defmodule PageDockWeb.Layouts do
 
   def app(assigns) do
     ~H"""
-    <header class="navbar px-4 sm:px-6 lg:px-8">
-      <div class="flex-1">
-        <a href="/" class="flex-1 flex w-fit items-center gap-2">
-          <img src={~p"/images/logo.svg"} width="36" />
-          <span class="text-sm font-semibold">v{Application.spec(:phoenix, :vsn)}</span>
-        </a>
-      </div>
-      <div class="flex-none">
-        <ul class="flex flex-column px-1 space-x-4 items-center">
-          <li>
-            <a href="https://phoenixframework.org/" class="btn btn-ghost">Website</a>
-          </li>
-          <li>
-            <a href="https://github.com/phoenixframework/phoenix" class="btn btn-ghost">GitHub</a>
-          </li>
-          <li>
-            <.theme_toggle />
-          </li>
-          <li>
-            <a href="https://hexdocs.pm/phoenix/overview.html" class="btn btn-primary">
-              Get Started <span aria-hidden="true">&rarr;</span>
-            </a>
-          </li>
-        </ul>
-      </div>
-    </header>
+    <div class="font-sans text-[15px] leading-[1.6] text-muted bg-bg antialiased min-h-screen">
+      <div class="glow">
+        <div class="max-w-[1080px] mx-auto px-6">
+          <header class="flex items-center justify-between h-16">
+            <.link
+              navigate={~p"/"}
+              class="inline-flex items-center gap-2 text-text font-medium text-[15px] no-underline"
+            >
+              <svg class="w-5 h-5" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <rect x="2" y="11" width="16" height="3" rx="1" fill="#0D0E10" />
+                <rect x="4.5" y="4" width="11" height="7" rx="1.5" fill="#5E6AD2" />
+                <rect x="2" y="15.5" width="16" height="1.5" rx="0.75" fill="#9A9EA5" />
+              </svg>
+              Pagedock
+            </.link>
+            <nav class="flex items-center gap-2">
+              <.theme_toggle />
+              <%= if @current_scope do %>
+                <span class="hidden sm:inline text-[13px] text-muted max-w-[180px] truncate">
+                  {@current_scope.user.email}
+                </span>
+                <.link navigate={~p"/users/settings"} class="btn-secondary h-8 px-3 no-underline">
+                  Settings
+                </.link>
+                <.link
+                  href={~p"/users/log-out"}
+                  method="delete"
+                  class="btn-secondary h-8 px-3 no-underline"
+                >
+                  Log out
+                </.link>
+              <% else %>
+                <.link navigate={~p"/users/log-in"} class="btn-secondary h-8 px-3 no-underline">
+                  Log in
+                </.link>
+                <.link navigate={~p"/users/register"} class="btn-primary h-8 px-3 no-underline">
+                  Sign up
+                </.link>
+              <% end %>
+            </nav>
+          </header>
 
-    <main class="px-4 py-20 sm:px-6 lg:px-8">
-      <div class="mx-auto max-w-2xl space-y-4">
-        {render_slot(@inner_block)}
+          <main class="py-16 md:py-24">
+            <div class="mx-auto max-w-md space-y-4">
+              {render_slot(@inner_block)}
+            </div>
+          </main>
+        </div>
       </div>
-    </main>
+    </div>
 
     <.flash_group flash={@flash} />
     """
