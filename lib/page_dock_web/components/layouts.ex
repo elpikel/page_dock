@@ -53,6 +53,12 @@ defmodule PageDockWeb.Layouts do
             <nav class="flex items-center gap-2">
               <.theme_toggle />
               <%= if @current_scope do %>
+                <.link
+                  navigate={~p"/sites"}
+                  class="hidden sm:inline px-3 py-1.5 rounded-md text-[14px] text-muted hover:text-text hover:bg-black/[0.04] no-underline transition-colors"
+                >
+                  Sites
+                </.link>
                 <span class="hidden sm:inline text-[13px] text-muted max-w-[180px] truncate">
                   {@current_scope.user.email}
                 </span>

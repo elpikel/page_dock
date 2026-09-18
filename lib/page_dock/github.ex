@@ -201,6 +201,42 @@ defmodule PageDock.Github do
     end
   end
 
+  ## Repositories
+
+  @doc """
+  Lists repositories the connected account can push to, most recently updated
+  first. Returns `{:ok, [%{id, name, full_name, owner, default_branch, private}]}`
+  or `{:error, reason}`.
+  """
+  def list_repos(%GithubAccount{access_token: token}) do
+    opts = [
+      url: @api_url <> "/user/repos",
+      params: [per_page: 100, sort: "pushed", affiliation: "owner,organization_member"]
+    ]
+
+    case opts |> auth_request(token) |> Req.get() do
+      {:ok, %{status: 200, body: repos}} when is_list(repos) ->
+        {:ok, Enum.map(repos, &to_repo/1)}
+
+      {:ok, %{status: status}} ->
+        {:error, {:repos, status}}
+
+      {:error, exception} ->
+        {:error, exception}
+    end
+  end
+
+  defp to_repo(repo) do
+    %{
+      id: repo["id"],
+      name: repo["name"],
+      full_name: repo["full_name"],
+      owner: get_in(repo, ["owner", "login"]),
+      default_branch: repo["default_branch"],
+      private: repo["private"]
+    }
+  end
+
   ## Persistence
 
   defp upsert_account(%User{} = user, attrs) do

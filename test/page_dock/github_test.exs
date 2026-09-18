@@ -208,6 +208,43 @@ defmodule PageDock.GithubTest do
     end
   end
 
+  describe "list_repos/1" do
+    test "maps the GitHub repositories response" do
+      account = github_account_fixture(user_fixture())
+
+      Req.Test.stub(PageDock.Github, fn conn ->
+        assert conn.request_path == "/user/repos"
+
+        Req.Test.json(conn, [
+          %{
+            "id" => 1,
+            "name" => "site",
+            "full_name" => "octo/site",
+            "owner" => %{"login" => "octo"},
+            "default_branch" => "main",
+            "private" => false
+          }
+        ])
+      end)
+
+      assert {:ok, [repo]} = Github.list_repos(account)
+      assert repo.id == 1
+      assert repo.full_name == "octo/site"
+      assert repo.owner == "octo"
+      assert repo.default_branch == "main"
+    end
+
+    test "returns an error on a non-200 response" do
+      account = github_account_fixture(user_fixture())
+
+      Req.Test.stub(PageDock.Github, fn conn ->
+        conn |> Plug.Conn.put_status(401) |> Req.Test.json(%{"message" => "Bad credentials"})
+      end)
+
+      assert {:error, {:repos, 401}} = Github.list_repos(account)
+    end
+  end
+
   describe "disconnect/1" do
     test "removes the connected account" do
       user = user_fixture()
