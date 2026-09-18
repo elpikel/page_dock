@@ -15,7 +15,7 @@ defmodule PageDock.Deployments do
     Repo.all(
       from d in Deployment,
         where: d.site_id == ^site_id,
-        order_by: [desc: d.inserted_at],
+        order_by: [desc: d.inserted_at, desc: d.id],
         limit: ^limit
     )
   end
