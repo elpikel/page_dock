@@ -23,6 +23,40 @@ end
 config :page_dock, PageDockWeb.Endpoint,
   http: [port: String.to_integer(System.get_env("PORT", "4000"))]
 
+# GitHub OAuth (account linking). Register an OAuth App at
+# https://github.com/settings/developers and set these env vars. The callback
+# URL configured on GitHub must match GITHUB_REDIRECT_URI. Skipped in :test,
+# which stubs GitHub via Req.Test (see config/test.exs).
+if config_env() != :test do
+  config :page_dock, :github,
+    client_id: System.get_env("GITHUB_CLIENT_ID"),
+    client_secret: System.get_env("GITHUB_CLIENT_SECRET"),
+    redirect_uri:
+      System.get_env("GITHUB_REDIRECT_URI") ||
+        "http://localhost:4000/auth/github/callback"
+end
+
+# Cloak vault: encrypts sensitive columns (e.g. GitHub tokens) at rest.
+# CLOAK_KEY is a base64-encoded 32-byte key (generate with
+# `Base.encode64(:crypto.strong_rand_bytes(32))`). A fixed key is used in
+# dev/test only; production must supply its own and keep it stable.
+cloak_key =
+  System.get_env("CLOAK_KEY") ||
+    if config_env() == :prod do
+      raise """
+      environment variable CLOAK_KEY is missing.
+      Generate one with: mix run -e 'IO.puts(Base.encode64(:crypto.strong_rand_bytes(32)))'
+      """
+    else
+      "zNOg1xOSPT2PjVIPoG00gmwx1D4Sgwxe/4EW4/34dMY="
+    end
+
+config :page_dock, PageDock.Vault,
+  ciphers: [
+    default:
+      {Cloak.Ciphers.AES.GCM, tag: "AES.GCM.V1", key: Base.decode64!(cloak_key), iv_length: 12}
+  ]
+
 if config_env() == :prod do
   database_url =
     System.get_env("DATABASE_URL") ||

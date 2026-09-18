@@ -80,6 +80,24 @@ defmodule PageDock.Accounts do
     |> Repo.insert()
   end
 
+  @doc """
+  Creates a confirmed, passwordless user from a GitHub-verified email.
+
+  Because GitHub has already verified the email, the account is marked confirmed
+  immediately. This intentionally does **not** merge into an existing account:
+  the caller must ensure no user already exists for the email (see
+  `PageDock.Github.login_or_register_user/1`), so a GitHub sign-in can never take
+  over a pre-existing password account.
+
+  Returns `{:ok, %User{}}` or `{:error, %Ecto.Changeset{}}`.
+  """
+  def register_github_user(%{email: email}) when is_binary(email) do
+    %User{}
+    |> User.email_changeset(%{email: email})
+    |> Ecto.Changeset.put_change(:confirmed_at, DateTime.utc_now(:second))
+    |> Repo.insert()
+  end
+
   ## Settings
 
   @doc """

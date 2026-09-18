@@ -4,6 +4,7 @@ defmodule PageDockWeb.UserLive.SettingsTest do
   alias PageDock.Accounts
   import Phoenix.LiveViewTest
   import PageDock.AccountsFixtures
+  import PageDock.GithubFixtures
 
   describe "Settings page" do
     test "renders settings page", %{conn: conn} do
@@ -34,6 +35,32 @@ defmodule PageDockWeb.UserLive.SettingsTest do
         |> follow_redirect(conn, ~p"/users/log-in")
 
       assert conn.resp_body =~ "You must re-authenticate to access this page."
+    end
+  end
+
+  describe "GitHub connection" do
+    test "shows a connect button when no account is linked", %{conn: conn} do
+      {:ok, lv, _html} =
+        conn
+        |> log_in_user(user_fixture())
+        |> live(~p"/users/settings")
+
+      assert has_element?(lv, "#github-connect")
+      refute has_element?(lv, "#github-connected")
+    end
+
+    test "shows the connected account and a disconnect action", %{conn: conn} do
+      user = user_fixture()
+      account = github_account_fixture(user)
+
+      {:ok, lv, html} =
+        conn
+        |> log_in_user(user)
+        |> live(~p"/users/settings")
+
+      assert has_element?(lv, "#github-connected")
+      assert has_element?(lv, "#github-disconnect")
+      assert html =~ "@#{account.login}"
     end
   end
 

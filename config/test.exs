@@ -26,6 +26,14 @@ config :page_dock, PageDockWeb.Endpoint,
 # In test we don't send emails
 config :page_dock, PageDock.Mailer, adapter: Swoosh.Adapters.Test
 
+# GitHub OAuth: use dummy credentials and route all HTTP through Req.Test so
+# tests can stub github.com responses with `Req.Test.stub(PageDock.Github, ...)`.
+config :page_dock, :github,
+  client_id: "test-client-id",
+  client_secret: "test-client-secret",
+  redirect_uri: "http://localhost:4002/auth/github/callback",
+  req_options: [plug: {Req.Test, PageDock.Github}]
+
 # Disable swoosh api client as it is only required for production adapters
 config :swoosh, :api_client, false
 

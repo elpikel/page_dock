@@ -57,6 +57,10 @@ defmodule PageDockWeb.Router do
     end
 
     post "/users/update-password", UserSessionController, :update_password
+
+    ## GitHub account linking (OAuth) — requires an authenticated user
+    get "/auth/github", GithubAuthController, :authorize
+    delete "/auth/github", GithubAuthController, :disconnect
   end
 
   scope "/", PageDockWeb do
@@ -71,5 +75,9 @@ defmodule PageDockWeb.Router do
 
     post "/users/log-in", UserSessionController, :create
     delete "/users/log-out", UserSessionController, :delete
+
+    ## Sign in with GitHub (OAuth) — public; callback is shared with linking
+    get "/auth/github/login", GithubAuthController, :login
+    get "/auth/github/callback", GithubAuthController, :callback
   end
 end

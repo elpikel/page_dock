@@ -4,6 +4,7 @@ defmodule PageDockWeb.UserLive.Settings do
   on_mount {PageDockWeb.UserAuth, :require_sudo_mode}
 
   alias PageDock.Accounts
+  alias PageDock.Github
 
   @impl true
   def render(assigns) do
@@ -11,7 +12,51 @@ defmodule PageDockWeb.UserLive.Settings do
     <Layouts.app flash={@flash} current_scope={@current_scope}>
       <div class="mb-2">
         <h1 class="text-xl font-medium tracking-[-0.02em] text-text">Account settings</h1>
-        <p class="mt-1 text-[14px] text-muted">Manage your email address and password.</p>
+        <p class="mt-1 text-[14px] text-muted">
+          Manage your email, password, and connected accounts.
+        </p>
+      </div>
+
+      <div class="card p-6 md:p-8">
+        <h2 class="text-[15px] font-medium text-text mb-4">GitHub</h2>
+        <%= if @github_account do %>
+          <div class="flex items-center justify-between gap-4" id="github-connected">
+            <div class="flex items-center gap-3 min-w-0">
+              <img
+                :if={@github_account.avatar_url}
+                src={@github_account.avatar_url}
+                alt=""
+                class="w-9 h-9 rounded-full border border-border"
+              />
+              <div class="min-w-0">
+                <p class="text-text font-medium truncate">@{@github_account.login}</p>
+                <p class="text-[13px] text-muted">Connected · repo, webhooks</p>
+              </div>
+            </div>
+            <.link
+              href={~p"/auth/github"}
+              method="delete"
+              data-confirm="Disconnect this GitHub account?"
+              class="btn-secondary h-9 px-3 no-underline shrink-0"
+              id="github-disconnect"
+            >
+              Disconnect
+            </.link>
+          </div>
+        <% else %>
+          <div class="flex items-center justify-between gap-4">
+            <p class="text-[14px] text-muted">
+              Connect GitHub to link a repository and deploy on every push.
+            </p>
+            <a
+              href={~p"/auth/github"}
+              class="btn-primary h-9 px-3 no-underline shrink-0 inline-flex items-center gap-2"
+              id="github-connect"
+            >
+              <.icon name="hero-link" class="size-4" /> Connect GitHub
+            </a>
+          </div>
+        <% end %>
       </div>
 
       <div class="card p-6 md:p-8">
@@ -93,6 +138,7 @@ defmodule PageDockWeb.UserLive.Settings do
     socket =
       socket
       |> assign(:current_email, user.email)
+      |> assign(:github_account, Github.get_connected_account(socket.assigns.current_scope))
       |> assign(:email_form, to_form(email_changeset))
       |> assign(:password_form, to_form(password_changeset))
       |> assign(:trigger_submit, false)

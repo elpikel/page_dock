@@ -9,6 +9,7 @@ defmodule PageDock.Application do
   def start(_type, _args) do
     children = [
       PageDockWeb.Telemetry,
+      PageDock.Vault,
       PageDock.Repo,
       {DNSCluster, query: Application.get_env(:page_dock, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: PageDock.PubSub},
