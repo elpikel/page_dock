@@ -122,12 +122,16 @@
   --color-accent-soft: var(--c-accent-soft);
   --color-star: rgb(var(--c-star));
   --color-ok: rgb(var(--c-ok));
+  --color-warn: rgb(var(--c-warn));
+  --color-bad: rgb(var(--c-bad));
+  --color-side: rgb(var(--c-side));
 
   --font-sans: Inter, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
   --shadow-card: var(--sh-card);
   --shadow-btn: var(--sh-btn);
+  --shadow-pop: var(--sh-pop);
 
   --animate-blink: blink 1s steps(1) infinite;
 }
@@ -148,8 +152,12 @@
   --c-accent-soft: rgba(94, 106, 210, 0.12);
   --c-star: 224 176 0;
   --c-ok: 46 158 103;
+  --c-warn: 201 138 27;
+  --c-bad: 209 67 67;
+  --c-side: 251 251 251;
   --sh-card: 0 1px 2px rgba(0, 0, 0, 0.04), 0 16px 40px -24px rgba(13, 14, 16, 0.25);
   --sh-btn: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  --sh-pop: 0 1px 2px rgba(0, 0, 0, 0.06), 0 12px 32px -12px rgba(13, 14, 16, 0.35);
 }
 
 :where(.dark, [data-theme="dark"]) {
@@ -164,8 +172,12 @@
   --c-accent-soft: rgba(94, 106, 210, 0.18);
   --c-star: 245 197 24;
   --c-ok: 76 195 138;
+  --c-warn: 224 165 60;
+  --c-bad: 232 106 106;
+  --c-side: 12 13 15;
   --sh-card: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 24px 48px -24px rgba(0, 0, 0, 0.8);
   --sh-btn: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  --sh-pop: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 12px 32px -12px rgba(0, 0, 0, 0.85);
 }
 
 @layer base {
@@ -192,6 +204,27 @@
     @apply inline-flex items-center justify-center h-10 px-4 rounded-lg bg-surface text-text text-sm font-medium border border-border hover:bg-raised hover:border-border2 transition-colors;
   }
   .card { @apply bg-surface rounded-xl border border-border shadow-card; }
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg bg-surface text-bad text-sm font-medium border border-border hover:bg-red-50 hover:border-red-200 transition-colors;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center h-7 w-7 rounded-md text-muted hover:text-text hover:bg-black/[0.05] transition-colors;
+  }
+  .nav-item {
+    @apply flex items-center gap-2.5 h-8 px-2.5 rounded-md text-[13.5px] text-muted hover:text-text hover:bg-black/[0.04] transition-colors no-underline;
+  }
+  .nav-item.active { @apply text-accent bg-accent-soft font-medium; }
+  .nav-item svg { @apply w-4 h-4 shrink-0; }
+  .kbd {
+    @apply inline-flex items-center justify-center h-5 min-w-[20px] px-1 rounded border border-border bg-raised text-[11px] font-medium text-muted;
+  }
+  .pill {
+    @apply inline-flex items-center gap-1.5 h-5 px-1.5 rounded text-[11.5px] font-medium;
+  }
+  .pill i { @apply w-1.5 h-1.5 rounded-full bg-current; }
+  .row {
+    @apply grid items-center gap-4 px-4 h-12 border-b border-border last:border-b-0 hover:bg-raised transition-colors;
+  }
   .fact {
     @apply grid grid-cols-1 md:grid-cols-[160px_1fr] gap-1 md:gap-6 py-4 border-b border-border text-[15px];
   }

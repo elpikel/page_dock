@@ -65,6 +65,10 @@ defmodule PageDockWeb.Router do
       live "/sites", SiteLive.Index, :index
       live "/sites/new", SiteLive.Form, :new
       live "/sites/:id", SiteLive.Show, :show
+
+      live "/deploys", DashboardLive.Placeholder, :deploys
+      live "/domains", DashboardLive.Placeholder, :domains
+      live "/billing", DashboardLive.Placeholder, :billing
     end
 
     post "/users/update-password", UserSessionController, :update_password

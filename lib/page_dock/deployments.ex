@@ -20,6 +20,22 @@ defmodule PageDock.Deployments do
     )
   end
 
+  @doc """
+  Returns a map of `site_id => latest %Deployment{}` for the given site ids,
+  used to show each site's current status in a list.
+  """
+  def latest_by_site_ids([]), do: %{}
+
+  def latest_by_site_ids(site_ids) do
+    from(d in Deployment,
+      where: d.site_id in ^site_ids,
+      distinct: d.site_id,
+      order_by: [asc: d.site_id, desc: d.inserted_at, desc: d.id]
+    )
+    |> Repo.all()
+    |> Map.new(&{&1.site_id, &1})
+  end
+
   @doc "Fetches a deployment by id (with its site preloaded), or nil."
   def get_deployment(id) do
     case Repo.get(Deployment, id) do

@@ -9,85 +9,88 @@ defmodule PageDockWeb.SiteLive.Show do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <div class="mb-6">
+    <Layouts.dashboard
+      flash={@flash}
+      current_scope={@current_scope}
+      active={:sites}
+      title={@site.name}
+      breadcrumb={Sites.public_domain(@site)}
+    >
+      <:actions>
+        <.button
+          phx-click="deploy"
+          phx-disable-with="Queuing..."
+          class="btn-primary h-7 px-3 text-[12.5px]"
+          id="deploy-now"
+        >
+          Deploy now
+        </.button>
+      </:actions>
+
+      <div class="max-w-[820px]">
         <.link navigate={~p"/sites"} class="text-[13px] text-muted hover:text-text no-underline">
           ← Back to sites
         </.link>
-        <div class="flex items-start justify-between gap-4 mt-2">
-          <div>
-            <h1 class="text-xl font-medium tracking-[-0.02em] text-text">{@site.name}</h1>
-            <p class="mt-1 text-[14px] text-muted font-mono">{Sites.public_domain(@site)}</p>
+
+        <div class="card divide-y divide-border mt-4">
+          <div class="grid grid-cols-[160px_1fr] gap-4 p-5 text-[14px]">
+            <span class="text-muted">Repository</span>
+            <a
+              href={"https://github.com/#{@site.repo_owner}/#{@site.repo_name}"}
+              class="text-accent hover:underline"
+              target="_blank"
+              rel="noopener"
+            >
+              {@site.repo_owner}/{@site.repo_name}
+            </a>
           </div>
-          <.button
-            phx-click="deploy"
-            phx-disable-with="Queuing..."
-            class="btn-primary h-9 px-3 shrink-0"
-            id="deploy-now"
-          >
-            Deploy now
-          </.button>
-        </div>
-      </div>
-
-      <div class="card divide-y divide-border">
-        <div class="grid grid-cols-[160px_1fr] gap-4 p-5 text-[14px]">
-          <span class="text-muted">Repository</span>
-          <a
-            href={"https://github.com/#{@site.repo_owner}/#{@site.repo_name}"}
-            class="text-accent hover:underline"
-            target="_blank"
-            rel="noopener"
-          >
-            {@site.repo_owner}/{@site.repo_name}
-          </a>
-        </div>
-        <div class="grid grid-cols-[160px_1fr] gap-4 p-5 text-[14px]">
-          <span class="text-muted">Branch</span>
-          <span class="text-text font-mono">{@site.default_branch}</span>
-        </div>
-        <div class="grid grid-cols-[160px_1fr] gap-4 p-5 text-[14px]">
-          <span class="text-muted">Webhook</span>
-          <span class={["font-medium", if(@site.webhook_id, do: "text-ok", else: "text-muted")]}>
-            {if @site.webhook_id, do: "Active — pushes deploy automatically", else: "Not set up"}
-          </span>
-        </div>
-      </div>
-
-      <div class="mt-8">
-        <h2 class="text-[15px] font-medium text-text mb-3">Deployments</h2>
-        <div :if={@deployments == []} class="card p-6 text-[14px] text-muted" id="deployments-empty">
-          No deployments yet. Push to <span class="font-mono">{@site.default_branch}</span>
-          to trigger one.
-        </div>
-        <div :if={@deployments != []} class="card divide-y divide-border" id="deployments">
-          <div
-            :for={deployment <- @deployments}
-            id={"deployment-#{deployment.id}"}
-            class="flex items-center justify-between gap-4 p-4 text-[14px]"
-          >
-            <div class="min-w-0">
-              <span class="font-mono text-text">{String.slice(deployment.commit_sha, 0, 7)}</span>
-              <span class="text-muted"> ·   {deployment.ref}</span>
-            </div>
-            <span class={["text-[13px] font-medium", status_color(deployment.status)]}>
-              {deployment.status}
+          <div class="grid grid-cols-[160px_1fr] gap-4 p-5 text-[14px]">
+            <span class="text-muted">Branch</span>
+            <span class="text-text font-mono">{@site.default_branch}</span>
+          </div>
+          <div class="grid grid-cols-[160px_1fr] gap-4 p-5 text-[14px]">
+            <span class="text-muted">Webhook</span>
+            <span class={["font-medium", if(@site.webhook_id, do: "text-ok", else: "text-muted")]}>
+              {if @site.webhook_id, do: "Active — pushes deploy automatically", else: "Not set up"}
             </span>
           </div>
         </div>
-      </div>
 
-      <div class="mt-6">
-        <.link
-          phx-click="delete"
-          data-confirm={"Delete #{@site.name}? This cannot be undone."}
-          class="text-[13px] text-muted hover:text-text cursor-pointer"
-          id="delete-site"
-        >
-          Delete this site
-        </.link>
+        <div class="mt-8">
+          <h2 class="text-[15px] font-medium text-text mb-3">Deployments</h2>
+          <div :if={@deployments == []} class="card p-6 text-[14px] text-muted" id="deployments-empty">
+            No deployments yet. Push to <span class="font-mono">{@site.default_branch}</span>
+            to trigger one.
+          </div>
+          <div :if={@deployments != []} class="card divide-y divide-border" id="deployments">
+            <div
+              :for={deployment <- @deployments}
+              id={"deployment-#{deployment.id}"}
+              class="flex items-center justify-between gap-4 p-4 text-[14px]"
+            >
+              <div class="min-w-0">
+                <span class="font-mono text-text">{String.slice(deployment.commit_sha, 0, 7)}</span>
+                <span class="text-muted"> ·    {deployment.ref}</span>
+              </div>
+              <span class={["text-[13px] font-medium", status_color(deployment.status)]}>
+                {deployment.status}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-6">
+          <.link
+            phx-click="delete"
+            data-confirm={"Delete #{@site.name}? This cannot be undone."}
+            class="text-[13px] text-muted hover:text-bad cursor-pointer"
+            id="delete-site"
+          >
+            Delete this site
+          </.link>
+        </div>
       </div>
-    </Layouts.app>
+    </Layouts.dashboard>
     """
   end
 

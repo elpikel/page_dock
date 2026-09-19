@@ -33,18 +33,25 @@
             What's included
           </a>
           <%= if @current_scope do %>
-            <span class="hidden sm:inline px-3 text-[13px] text-muted max-w-[180px] truncate">
-              {@current_scope.user.email}
-            </span>
-            <a href={~p"/users/settings"} class="ml-2 btn-secondary h-8 px-3 no-underline">
-              Settings
-            </a>
             <.link
-              href={~p"/users/log-out"}
-              method="delete"
-              class="btn-primary h-8 px-3 no-underline"
+              navigate={~p"/sites"}
+              class="ml-2 btn-primary h-8 pl-3 pr-2.5 no-underline inline-flex items-center"
             >
-              Log out
+              Open my sites
+              <svg
+                class="w-3.5 h-3.5 ml-1.5 opacity-70"
+                viewBox="0 0 16 16"
+                fill="none"
+                aria-hidden="true"
+              >
+                <path
+                  d="M6 3.5L10.5 8 6 12.5"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
             </.link>
           <% else %>
             <a href={~p"/users/log-in"} class="ml-2 btn-secondary h-8 px-3 no-underline">

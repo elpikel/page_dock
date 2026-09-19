@@ -9,110 +9,115 @@ defmodule PageDockWeb.UserLive.Settings do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <div class="mb-2">
-        <h1 class="text-xl font-medium tracking-[-0.02em] text-text">Account settings</h1>
-        <p class="mt-1 text-[14px] text-muted">
-          Manage your email, password, and connected accounts.
-        </p>
-      </div>
-
-      <div class="card p-6 md:p-8">
-        <h2 class="text-[15px] font-medium text-text mb-4">GitHub</h2>
-        <%= if @github_account do %>
-          <div class="flex items-center justify-between gap-4" id="github-connected">
-            <div class="flex items-center gap-3 min-w-0">
-              <img
-                :if={@github_account.avatar_url}
-                src={@github_account.avatar_url}
-                alt=""
-                class="w-9 h-9 rounded-full border border-border"
-              />
-              <div class="min-w-0">
-                <p class="text-text font-medium truncate">@{@github_account.login}</p>
-                <p class="text-[13px] text-muted">Connected · repo, webhooks</p>
+    <Layouts.dashboard
+      flash={@flash}
+      current_scope={@current_scope}
+      active={:settings}
+      title="Settings"
+    >
+      <div class="max-w-[720px] grid gap-4">
+        <div class="card p-6 md:p-8">
+          <h2 class="text-[15px] font-medium text-text mb-4">GitHub</h2>
+          <%= if @github_account do %>
+            <div class="flex items-center justify-between gap-4" id="github-connected">
+              <div class="flex items-center gap-3 min-w-0">
+                <img
+                  :if={@github_account.avatar_url}
+                  src={@github_account.avatar_url}
+                  alt=""
+                  class="w-9 h-9 rounded-full border border-border"
+                />
+                <div class="min-w-0">
+                  <p class="text-text font-medium truncate">@{@github_account.login}</p>
+                  <p class="text-[13px] text-muted">Connected · repo, webhooks</p>
+                </div>
               </div>
+              <.link
+                href={~p"/auth/github"}
+                method="delete"
+                data-confirm="Disconnect this GitHub account?"
+                class="btn-secondary h-9 px-3 no-underline shrink-0"
+                id="github-disconnect"
+              >
+                Disconnect
+              </.link>
             </div>
-            <.link
-              href={~p"/auth/github"}
-              method="delete"
-              data-confirm="Disconnect this GitHub account?"
-              class="btn-secondary h-9 px-3 no-underline shrink-0"
-              id="github-disconnect"
-            >
-              Disconnect
-            </.link>
-          </div>
-        <% else %>
-          <div class="flex items-center justify-between gap-4">
-            <p class="text-[14px] text-muted">
-              Connect GitHub to link a repository and deploy on every push.
-            </p>
-            <a
-              href={~p"/auth/github"}
-              class="btn-primary h-9 px-3 no-underline shrink-0 inline-flex items-center gap-2"
-              id="github-connect"
-            >
-              <.icon name="hero-link" class="size-4" /> Connect GitHub
-            </a>
-          </div>
-        <% end %>
-      </div>
+          <% else %>
+            <div class="flex items-center justify-between gap-4">
+              <p class="text-[14px] text-muted">
+                Connect GitHub to link a repository and deploy on every push.
+              </p>
+              <a
+                href={~p"/auth/github"}
+                class="btn-primary h-9 px-3 no-underline shrink-0 inline-flex items-center gap-2"
+                id="github-connect"
+              >
+                <.icon name="hero-link" class="size-4" /> Connect GitHub
+              </a>
+            </div>
+          <% end %>
+        </div>
 
-      <div class="card p-6 md:p-8">
-        <h2 class="text-[15px] font-medium text-text mb-4">Email address</h2>
-        <.form for={@email_form} id="email_form" phx-submit="update_email" phx-change="validate_email">
-          <.input
-            field={@email_form[:email]}
-            type="email"
-            label="Email"
-            autocomplete="username"
-            spellcheck="false"
-            required
-          />
-          <.button class="btn-primary mt-4" phx-disable-with="Changing...">Change email</.button>
-        </.form>
-      </div>
+        <div class="card p-6 md:p-8">
+          <h2 class="text-[15px] font-medium text-text mb-4">Email address</h2>
+          <.form
+            for={@email_form}
+            id="email_form"
+            phx-submit="update_email"
+            phx-change="validate_email"
+          >
+            <.input
+              field={@email_form[:email]}
+              type="email"
+              label="Email"
+              autocomplete="username"
+              spellcheck="false"
+              required
+            />
+            <.button class="btn-primary mt-4" phx-disable-with="Changing...">Change email</.button>
+          </.form>
+        </div>
 
-      <div class="card p-6 md:p-8">
-        <h2 class="text-[15px] font-medium text-text mb-4">Password</h2>
-        <.form
-          for={@password_form}
-          id="password_form"
-          action={~p"/users/update-password"}
-          method="post"
-          phx-change="validate_password"
-          phx-submit="update_password"
-          phx-trigger-action={@trigger_submit}
-        >
-          <input
-            name={@password_form[:email].name}
-            type="hidden"
-            id="hidden_user_email"
-            spellcheck="false"
-            value={@current_email}
-          />
-          <.input
-            field={@password_form[:password]}
-            type="password"
-            label="New password"
-            autocomplete="new-password"
-            spellcheck="false"
-            required
-          />
-          <.input
-            field={@password_form[:password_confirmation]}
-            type="password"
-            label="Confirm new password"
-            autocomplete="new-password"
-            spellcheck="false"
-          />
-          <.button class="btn-primary mt-4" phx-disable-with="Saving...">
-            Save password
-          </.button>
-        </.form>
+        <div class="card p-6 md:p-8">
+          <h2 class="text-[15px] font-medium text-text mb-4">Password</h2>
+          <.form
+            for={@password_form}
+            id="password_form"
+            action={~p"/users/update-password"}
+            method="post"
+            phx-change="validate_password"
+            phx-submit="update_password"
+            phx-trigger-action={@trigger_submit}
+          >
+            <input
+              name={@password_form[:email].name}
+              type="hidden"
+              id="hidden_user_email"
+              spellcheck="false"
+              value={@current_email}
+            />
+            <.input
+              field={@password_form[:password]}
+              type="password"
+              label="New password"
+              autocomplete="new-password"
+              spellcheck="false"
+              required
+            />
+            <.input
+              field={@password_form[:password_confirmation]}
+              type="password"
+              label="Confirm new password"
+              autocomplete="new-password"
+              spellcheck="false"
+            />
+            <.button class="btn-primary mt-4" phx-disable-with="Saving...">
+              Save password
+            </.button>
+          </.form>
+        </div>
       </div>
-    </Layouts.app>
+    </Layouts.dashboard>
     """
   end
 

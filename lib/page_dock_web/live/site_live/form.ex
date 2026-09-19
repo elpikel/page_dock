@@ -8,57 +8,64 @@ defmodule PageDockWeb.SiteLive.Form do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <div class="mb-6">
+    <Layouts.dashboard
+      flash={@flash}
+      current_scope={@current_scope}
+      active={:sites}
+      title="New site"
+    >
+      <div class="max-w-[520px]">
         <.link navigate={~p"/sites"} class="text-[13px] text-muted hover:text-text no-underline">
           ← Back to sites
         </.link>
-        <h1 class="text-xl font-medium tracking-[-0.02em] text-text mt-2">Link a repository</h1>
-        <p class="mt-1 text-[14px] text-muted">
+        <h1 class="text-[22px] font-semibold tracking-[-0.02em] text-text mt-2">
+          Link a repository
+        </h1>
+        <p class="mt-1 text-[13.5px] text-muted">
           Choose a GitHub repository to publish as a site.
         </p>
+
+        <%= if @github_account do %>
+          <div class="card p-6 md:p-8 mt-5">
+            <p :if={@repos_error} class="mb-4 text-[13px] text-error">{@repos_error}</p>
+
+            <.form for={@form} id="site-form" phx-change="validate" phx-submit="save">
+              <.input
+                field={@form[:repo_id]}
+                type="select"
+                label="Repository"
+                prompt="Choose a repository"
+                options={Enum.map(@repos, &{&1.full_name, &1.id})}
+              />
+              <.input field={@form[:name]} type="text" label="Site name" phx-mounted={JS.focus()} />
+              <div>
+                <.input field={@form[:slug]} type="text" label="Address" />
+                <p class="mt-1 text-[13px] text-faint">
+                  {Sites.public_domain(@form[:slug].value || "your-site")}
+                </p>
+              </div>
+
+              <.button phx-disable-with="Linking..." class="btn-primary w-full mt-6">
+                Link repository
+              </.button>
+            </.form>
+          </div>
+        <% else %>
+          <div class="card p-8 text-center" id="connect-prompt">
+            <p class="text-text font-medium">Connect GitHub first</p>
+            <p class="mt-1 text-[14px] text-muted">
+              Pagedock needs access to your repositories before you can link one.
+            </p>
+            <.link
+              href={~p"/auth/github"}
+              class="btn-primary h-9 px-3 no-underline inline-flex mt-4"
+            >
+              Connect GitHub
+            </.link>
+          </div>
+        <% end %>
       </div>
-
-      <%= if @github_account do %>
-        <div class="card p-6 md:p-8">
-          <p :if={@repos_error} class="mb-4 text-[13px] text-error">{@repos_error}</p>
-
-          <.form for={@form} id="site-form" phx-change="validate" phx-submit="save">
-            <.input
-              field={@form[:repo_id]}
-              type="select"
-              label="Repository"
-              prompt="Choose a repository"
-              options={Enum.map(@repos, &{&1.full_name, &1.id})}
-            />
-            <.input field={@form[:name]} type="text" label="Site name" phx-mounted={JS.focus()} />
-            <div>
-              <.input field={@form[:slug]} type="text" label="Address" />
-              <p class="mt-1 text-[13px] text-faint">
-                {Sites.public_domain(@form[:slug].value || "your-site")}
-              </p>
-            </div>
-
-            <.button phx-disable-with="Linking..." class="btn-primary w-full mt-6">
-              Link repository
-            </.button>
-          </.form>
-        </div>
-      <% else %>
-        <div class="card p-8 text-center" id="connect-prompt">
-          <p class="text-text font-medium">Connect GitHub first</p>
-          <p class="mt-1 text-[14px] text-muted">
-            Pagedock needs access to your repositories before you can link one.
-          </p>
-          <.link
-            href={~p"/auth/github"}
-            class="btn-primary h-9 px-3 no-underline inline-flex mt-4"
-          >
-            Connect GitHub
-          </.link>
-        </div>
-      <% end %>
-    </Layouts.app>
+    </Layouts.dashboard>
     """
   end
 
