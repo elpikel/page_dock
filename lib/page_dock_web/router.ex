@@ -24,6 +24,14 @@ defmodule PageDockWeb.Router do
     post "/github/:site_id", GithubWebhookController, :create
   end
 
+  # Operational endpoints for the reverse proxy / monitoring (no session/CSRF).
+  scope "/", PageDockWeb do
+    pipe_through :api
+
+    get "/healthz", OpsController, :healthz
+    get "/internal/tls-check", OpsController, :tls_check
+  end
+
   scope "/", PageDockWeb do
     pipe_through :browser
 

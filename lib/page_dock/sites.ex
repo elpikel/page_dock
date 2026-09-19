@@ -43,6 +43,29 @@ defmodule PageDock.Sites do
   def public_domain(%Site{slug: slug}), do: "#{slug}.#{public_host()}"
   def public_domain(slug) when is_binary(slug), do: "#{slug}.#{public_host()}"
 
+  @doc """
+  Whether `host` is served by this app: the product apex host itself, or a
+  `<slug>.<host>` subdomain of an existing site. Used to gate on-demand TLS
+  issuance (Caddy's "ask" endpoint) so certs are only minted for real hosts.
+  """
+  def servable_host?(host) when is_binary(host) do
+    host == public_host() or site_subdomain?(host)
+  end
+
+  def servable_host?(_), do: false
+
+  defp site_subdomain?(host) do
+    suffix = "." <> public_host()
+
+    with true <- String.ends_with?(host, suffix),
+         slug = String.replace_suffix(host, suffix, ""),
+         true <- slug != "" and not String.contains?(slug, ".") do
+      get_site_by_slug(slug) != nil
+    else
+      _ -> false
+    end
+  end
+
   @doc "Creates a site owned by the scope user."
   def create_site(%Scope{user: user}, attrs) do
     %Site{user_id: user.id}

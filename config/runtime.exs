@@ -43,6 +43,13 @@ if webhook_base_url = System.get_env("WEBHOOK_BASE_URL") do
   config :page_dock, :sites, webhook_base_url: webhook_base_url
 end
 
+# Where published site files live on disk. In production this MUST be an absolute
+# path outside the release directory (e.g. /var/lib/pagedock/deploys) so deploys
+# survive app upgrades. Defaults to priv/deploys (fine for dev only).
+if deploy_root = System.get_env("DEPLOY_ROOT") do
+  config :page_dock, :sites, deploy_root: deploy_root
+end
+
 # Cloak vault: encrypts sensitive columns (e.g. GitHub tokens) at rest.
 # CLOAK_KEY is a base64-encoded 32-byte key (generate with
 # `Base.encode64(:crypto.strong_rand_bytes(32))`). A fixed key is used in
