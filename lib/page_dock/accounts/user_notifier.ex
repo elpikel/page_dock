@@ -9,13 +9,19 @@ defmodule PageDock.Accounts.UserNotifier do
     email =
       new()
       |> to(recipient)
-      |> from({"PageDock", "contact@example.com"})
+      |> from(from_address())
       |> subject(subject)
       |> text_body(body)
 
     with {:ok, _metadata} <- Mailer.deliver(email) do
       {:ok, email}
     end
+  end
+
+  # The sender must be a verified sender on the mail provider (Brevo). Set via
+  # `config :page_dock, :mail_from, {"Name", "addr"}` (from MAIL_FROM in prod).
+  defp from_address do
+    Application.get_env(:page_dock, :mail_from, {"Pagedock", "hello@pagedock.eu"})
   end
 
   @doc """

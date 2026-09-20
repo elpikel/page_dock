@@ -148,21 +148,40 @@ if config_env() == :prod do
   #
   # Check `Plug.SSL` for all available options in `force_ssl`.
 
-  # ## Configuring the mailer
+  # ## Mailer — Brevo (SMTP)
   #
-  # In production you need to configure the mailer to use a different adapter.
-  # Here is an example configuration for Mailgun:
-  #
-  #     config :page_dock, PageDock.Mailer,
-  #       adapter: Swoosh.Adapters.Mailgun,
-  #       api_key: System.get_env("MAILGUN_API_KEY"),
-  #       domain: System.get_env("MAILGUN_DOMAIN")
-  #
-  # Most non-SMTP adapters require an API client. Swoosh supports Req, Hackney,
-  # and Finch out-of-the-box. This configuration is typically done at
-  # compile-time in your config/prod.exs:
-  #
-  #     config :swoosh, :api_client, Swoosh.ApiClient.Req
-  #
-  # See https://hexdocs.pm/swoosh/Swoosh.html#module-installation for details.
+  # Transactional email (magic links, confirmations) is sent through Brevo's SMTP
+  # relay. Create an SMTP key in Brevo (SMTP & API → SMTP) and set:
+  #   SMTP_USERNAME   your Brevo SMTP login (the account email Brevo shows there)
+  #   SMTP_PASSWORD   the Brevo SMTP key (NOT your account password)
+  #   MAIL_FROM       a sender address verified in Brevo (e.g. hello@pagedock.eu)
+  #   MAIL_FROM_NAME  optional display name (defaults to "Pagedock")
+  #   SMTP_RELAY      optional, defaults to smtp-relay.brevo.com
+  #   SMTP_PORT       optional, defaults to 587 (STARTTLS)
+  smtp_relay = System.get_env("SMTP_RELAY") || "smtp-relay.brevo.com"
+
+  config :page_dock, PageDock.Mailer,
+    adapter: Swoosh.Adapters.SMTP,
+    relay: smtp_relay,
+    port: String.to_integer(System.get_env("SMTP_PORT") || "587"),
+    username:
+      System.get_env("SMTP_USERNAME") ||
+        raise("environment variable SMTP_USERNAME is missing (Brevo SMTP login)"),
+    password:
+      System.get_env("SMTP_PASSWORD") ||
+        raise("environment variable SMTP_PASSWORD is missing (Brevo SMTP key)"),
+    auth: :always,
+    tls: :always,
+    tls_options: [
+      verify: :verify_peer,
+      cacerts: :public_key.cacerts_get(),
+      server_name_indication: String.to_charlist(smtp_relay),
+      depth: 4
+    ],
+    retries: 2,
+    no_mx_lookups: false
+
+  if mail_from = System.get_env("MAIL_FROM") do
+    config :page_dock, :mail_from, {System.get_env("MAIL_FROM_NAME") || "Pagedock", mail_from}
+  end
 end

@@ -9,7 +9,11 @@ config :page_dock, PageDockWeb.Endpoint, cache_static_manifest: "priv/static/cac
 
 # Force using SSL in production. This also sets the "strict-security-transport" header,
 # also known as HSTS. `:force_ssl` is required to be set at compile-time.
-config :page_dock, PageDockWeb.Endpoint, force_ssl: [rewrite_on: [:x_forwarded_proto]]
+# Exclude loopback so plain-HTTP internal probes still work: the health check and
+# Caddy's on-demand-TLS "ask" (GET /internal/tls-check) hit the app over http on
+# 127.0.0.1/localhost and must not be redirected to https.
+config :page_dock, PageDockWeb.Endpoint,
+  force_ssl: [rewrite_on: [:x_forwarded_proto], exclude: ["localhost", "127.0.0.1"]]
 
 # Configure Swoosh API Client
 config :swoosh, api_client: Swoosh.ApiClient.Req

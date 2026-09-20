@@ -55,6 +55,10 @@ config :page_dock, PageDockWeb.Endpoint,
 # at the `config/runtime.exs`.
 config :page_dock, PageDock.Mailer, adapter: Swoosh.Adapters.Local
 
+# Default "From" for outgoing mail. In production, override via MAIL_FROM /
+# MAIL_FROM_NAME (must be a sender verified with Brevo). See config/runtime.exs.
+config :page_dock, :mail_from, {"Pagedock", "hello@pagedock.eu"}
+
 # Configure esbuild (the version is required)
 config :esbuild,
   version: "0.25.4",

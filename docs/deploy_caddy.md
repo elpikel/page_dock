@@ -1,9 +1,12 @@
-# Deploying Pagedock to a Hetzner server
+# Deploying Pagedock with Caddy (manual, single box)
 
-A single-box production setup: one Hetzner Cloud server running the Phoenix
-release, PostgreSQL, and Caddy as the TLS-terminating reverse proxy. Caddy
-serves both the dashboard (`pagedock.eu`) and every user site
-(`<slug>.pagedock.eu`) — the app decides which is which.
+A single-box production setup on a Hetzner Cloud server: the Phoenix release,
+PostgreSQL, and **Caddy** as the TLS-terminating reverse proxy, all wired up by
+hand (no PaaS). Caddy serves both the dashboard (`pagedock.eu`) and every user
+site (`<slug>.pagedock.eu`) — the app decides which is which.
+
+> Prefer a git-push UI over hand-rolling this? See
+> [Deploying with Coolify](deploy_coolify.md).
 
 ```
             :443 / :80
@@ -143,8 +146,19 @@ GITHUB_CLIENT_SECRET=REPLACE_ME
 GITHUB_REDIRECT_URI=https://pagedock.eu/auth/github/callback
 WEBHOOK_BASE_URL=https://pagedock.eu
 DEPLOY_ROOT=/var/lib/pagedock/deploys
+# Email — Brevo SMTP (magic links, confirmations)
+SMTP_USERNAME=REPLACE_ME
+SMTP_PASSWORD=REPLACE_ME
+MAIL_FROM=hello@pagedock.eu
+MAIL_FROM_NAME=Pagedock
 ENV
 ```
+
+For email: create an **SMTP key** in Brevo (SMTP & API → SMTP), use your Brevo
+SMTP login as `SMTP_USERNAME` and the key as `SMTP_PASSWORD`, and verify
+`hello@pagedock.eu` as a sender in Brevo. Without these, the app boots but
+password/GitHub login only — magic-link and confirmation emails won't send (and
+prod refuses to start until `SMTP_USERNAME`/`SMTP_PASSWORD` are set).
 
 Generate the two secrets:
 
@@ -271,9 +285,11 @@ https:// {
 sudo systemctl reload caddy
 ```
 
-Now visit `https://pagedock.eu`, create an account, connect GitHub, link a repo,
-and open `https://<slug>.pagedock.eu` — Caddy fetches a cert for it on the first
-hit.
+Now verify with a real site. Visit `https://pagedock.eu`, create an account,
+connect GitHub, and **New site** → link `hireordo/landing` (branch `main`) as
+`ordo-landing`. Push (or click **Deploy now**), then open
+**`https://ordo-landing.pagedock.eu`** — Caddy fetches a cert for it on the first
+hit and the app serves it from `$DEPLOY_ROOT/ordo-landing/`.
 
 > **Alternative: wildcard certificate.** If you'd rather issue one
 > `*.pagedock.eu` cert instead of per-subdomain on-demand, use a Caddy build with
