@@ -81,6 +81,14 @@ defmodule PageDock.Accounts do
   end
 
   @doc """
+  Deletes a user (and, via FK cascade, its tokens).
+
+  Used to roll back a just-created account when the confirmation email can't be
+  sent, so the address isn't permanently stranded.
+  """
+  def delete_user(%User{} = user), do: Repo.delete(user)
+
+  @doc """
   Creates a confirmed, passwordless user from a GitHub-verified email.
 
   Because GitHub has already verified the email, the account is marked confirmed

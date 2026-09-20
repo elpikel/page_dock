@@ -73,19 +73,7 @@ defmodule PageDockWeb.UserLive.Registration do
   def handle_event("save", %{"user" => user_params}, socket) do
     case Accounts.register_user(user_params) do
       {:ok, user} ->
-        {:ok, _} =
-          Accounts.deliver_login_instructions(
-            user,
-            &url(~p"/users/log-in/#{&1}")
-          )
-
-        {:noreply,
-         socket
-         |> put_flash(
-           :info,
-           "An email was sent to #{user.email}, please access it to confirm your account."
-         )
-         |> push_navigate(to: ~p"/users/log-in")}
+        deliver_or_rollback(socket, user)
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign_form(socket, changeset)}
@@ -95,6 +83,33 @@ defmodule PageDockWeb.UserLive.Registration do
   def handle_event("validate", %{"user" => user_params}, socket) do
     changeset = Accounts.change_user_email(%User{}, user_params, validate_unique: false)
     {:noreply, assign_form(socket, Map.put(changeset, :action, :validate))}
+  end
+
+  # The account is passwordless and unconfirmed and only reachable via this
+  # email. If the send fails, a stranded account would block the address forever
+  # (can't log in, can't re-register), so we roll it back and let them retry.
+  defp deliver_or_rollback(socket, user) do
+    case Accounts.deliver_login_instructions(user, &url(~p"/users/log-in/#{&1}")) do
+      {:ok, _} ->
+        {:noreply,
+         socket
+         |> put_flash(
+           :info,
+           "An email was sent to #{user.email}, please access it to confirm your account."
+         )
+         |> push_navigate(to: ~p"/users/log-in")}
+
+      {:error, _reason} ->
+        Accounts.delete_user(user)
+
+        {:noreply,
+         socket
+         |> put_flash(
+           :error,
+           "We couldn't send your confirmation email. Please try again in a moment, or continue with GitHub."
+         )
+         |> assign_form(Accounts.change_user_email(%User{}, %{}, validate_unique: false))}
+    end
   end
 
   defp assign_form(socket, %Ecto.Changeset{} = changeset) do
