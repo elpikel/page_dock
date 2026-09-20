@@ -60,7 +60,6 @@ defmodule PageDock.MixProject do
        compile: false,
        depth: 1},
       {:swoosh, "~> 1.16"},
-      {:gen_smtp, "~> 1.2"},
       {:req, "~> 0.5"},
       {:cloak, "~> 1.1"},
       {:cloak_ecto, "~> 1.3"},

@@ -146,19 +146,16 @@ GITHUB_CLIENT_SECRET=REPLACE_ME
 GITHUB_REDIRECT_URI=https://pagedock.eu/auth/github/callback
 WEBHOOK_BASE_URL=https://pagedock.eu
 DEPLOY_ROOT=/var/lib/pagedock/deploys
-# Email — Brevo SMTP (magic links, confirmations)
-SMTP_USERNAME=REPLACE_ME
-SMTP_PASSWORD=REPLACE_ME
+# Email — Brevo API (magic links, confirmations)
+BREVO_API_KEY=REPLACE_ME
 MAIL_FROM=hello@pagedock.eu
 MAIL_FROM_NAME=Pagedock
 ENV
 ```
 
-For email: create an **SMTP key** in Brevo (SMTP & API → SMTP), use your Brevo
-SMTP login as `SMTP_USERNAME` and the key as `SMTP_PASSWORD`, and verify
-`hello@pagedock.eu` as a sender in Brevo. Without these, the app boots but
-password/GitHub login only — magic-link and confirmation emails won't send (and
-prod refuses to start until `SMTP_USERNAME`/`SMTP_PASSWORD` are set).
+For email: create an **API key** in Brevo (SMTP & API → API Keys) as
+`BREVO_API_KEY`, and verify `hello@pagedock.eu` as a sender in Brevo. Prod won't
+start until `BREVO_API_KEY` is set.
 
 Generate the two secrets:
 

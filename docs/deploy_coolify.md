@@ -118,16 +118,14 @@ GITHUB_CLIENT_SECRET=...
 GITHUB_REDIRECT_URI=https://pagedock.eu/auth/github/callback
 WEBHOOK_BASE_URL=https://pagedock.eu
 DEPLOY_ROOT=/data/deploys
-SMTP_USERNAME=<brevo smtp login>
-SMTP_PASSWORD=<brevo smtp key>
+BREVO_API_KEY=<brevo api key>
 MAIL_FROM=hello@pagedock.eu
 MAIL_FROM_NAME=Pagedock
 ```
 
-Email goes through **Brevo SMTP**: create an SMTP key in Brevo (SMTP & API →
-SMTP), use the SMTP login as `SMTP_USERNAME` and the key as `SMTP_PASSWORD`, and
-verify `hello@pagedock.eu` as a sender. Prod won't boot until `SMTP_USERNAME` /
-`SMTP_PASSWORD` are set.
+Email goes through the **Brevo API**: create an API key in Brevo (SMTP & API →
+API Keys) as `BREVO_API_KEY`, and verify `hello@pagedock.eu` as a sender. Prod
+won't boot until `BREVO_API_KEY` is set.
 
 Generate the secrets locally:
 
