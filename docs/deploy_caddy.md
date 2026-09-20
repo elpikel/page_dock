@@ -40,7 +40,7 @@ Everything stays on one EU machine: files, database, and TLS.
 
 In the Hetzner Cloud console:
 
-- **Location:** Falkenstein or Nuremberg (Germany, matches the EU-hosting promise).
+- **Location:** any EU region (Helsinki, Falkenstein, Nuremberg) — matches the EU-hosting promise.
 - **Image:** Ubuntu 24.04 LTS.
 - **Type:** CX22 (x86) or CAX11 (ARM) is plenty to start.
 - Add your SSH key.

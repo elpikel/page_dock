@@ -51,7 +51,6 @@ defmodule PageDockWeb.Layouts do
               Pagedock
             </.link>
             <nav class="flex items-center gap-2">
-              <.theme_toggle />
               <%= if @current_scope do %>
                 <.link
                   navigate={~p"/sites"}
