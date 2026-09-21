@@ -61,67 +61,72 @@ defmodule PageDockWeb.SiteLive.Index do
         <div
           :for={{dom_id, site} <- @streams.sites}
           id={dom_id}
-          class="card flex items-center h-[72px] overflow-hidden hover:border-border2 transition-colors"
+          class="card relative flex items-center h-[72px] overflow-hidden hover:border-border2 transition-colors"
         >
-          <span class={["w-1 self-stretch shrink-0", stripe_gradient(site.slug)]}></span>
+          <span class={["absolute inset-y-0 left-0 w-1", stripe_gradient(site.slug)]}></span>
 
-          <.link
-            navigate={~p"/sites/#{site}"}
-            class="flex items-center gap-3.5 pl-3.5 min-w-0 basis-[34%] shrink-0 no-underline"
-          >
-            <span class={[
-              "w-10 h-10 rounded-[10px] flex items-center justify-center text-white font-mono text-[12px] font-semibold shrink-0",
-              tile_gradient(site.slug)
-            ]}>
-              {slug_badge(site.slug)}
-            </span>
-            <span class="min-w-0">
-              <span class="flex items-center text-[14.5px] font-semibold tracking-[-0.01em] text-text truncate">
-                {site.name}
-                <span class={["pill ml-2.5", pill_class(@statuses[site.id])]}>
-                  <i></i>{pill_label(@statuses[site.id])}
+          <div class="grid grid-cols-[minmax(0,1.7fr)_minmax(0,1.3fr)_auto] items-center gap-4 w-full pl-4 pr-3">
+            <.link
+              navigate={~p"/sites/#{site}"}
+              class="flex items-center gap-3 min-w-0 no-underline"
+            >
+              <span class={[
+                "w-10 h-10 rounded-[10px] flex items-center justify-center text-white font-mono text-[12px] font-semibold shrink-0",
+                tile_gradient(site.slug)
+              ]}>
+                {slug_badge(site.slug)}
+              </span>
+              <span class="min-w-0">
+                <span class="flex items-center gap-2.5 text-[14.5px] font-semibold tracking-[-0.01em] text-text">
+                  <span class="truncate">{site.name}</span>
+                  <span class={["pill shrink-0", pill_class(@statuses[site.id])]}>
+                    <i></i>{pill_label(@statuses[site.id])}
+                  </span>
+                </span>
+                <span class="block text-[12.5px] font-mono text-muted truncate">
+                  {Sites.public_domain(site)}
                 </span>
               </span>
-              <span class="block text-[12.5px] font-mono text-muted truncate">
-                {Sites.public_domain(site)}
+            </.link>
+
+            <span class="hidden md:flex items-center min-w-0 text-[12.5px] font-mono text-muted">
+              <svg
+                class="w-3.5 h-3.5 mr-2 shrink-0 text-faint"
+                viewBox="0 0 16 16"
+                fill="currentColor"
+              >
+                <path d="M8 0C3.58 0 0 3.58 0 8a8 8 0 005.47 7.59c.4.07.55-.17.55-.38v-1.33c-2.23.48-2.7-1.07-2.7-1.07-.36-.92-.89-1.17-.89-1.17-.73-.5.06-.49.06-.49.8.06 1.23.83 1.23.83.71 1.22 1.87.87 2.33.66.07-.52.28-.87.5-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82A7.6 7.6 0 018 3.87c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.28.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.46.55.38A8 8 0 0016 8c0-4.42-3.58-8-8-8z" />
+              </svg>
+              <span class="truncate">{site.repo_owner}/{site.repo_name}</span>
+              <span class="ml-2 shrink-0 px-1.5 py-px rounded-[5px] bg-raised border border-border text-muted text-[11.5px]">
+                {site.default_branch}
               </span>
             </span>
-          </.link>
 
-          <span class="flex items-center min-w-0 basis-[30%] shrink-0 px-4 text-[12.5px] font-mono text-muted truncate">
-            <svg class="w-3.5 h-3.5 mr-2 shrink-0 text-faint" viewBox="0 0 16 16" fill="currentColor">
-              <path d="M8 0C3.58 0 0 3.58 0 8a8 8 0 005.47 7.59c.4.07.55-.17.55-.38v-1.33c-2.23.48-2.7-1.07-2.7-1.07-.36-.92-.89-1.17-.89-1.17-.73-.5.06-.49.06-.49.8.06 1.23.83 1.23.83.71 1.22 1.87.87 2.33.66.07-.52.28-.87.5-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82A7.6 7.6 0 018 3.87c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.28.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.46.55.38A8 8 0 0016 8c0-4.42-3.58-8-8-8z" />
-            </svg>
-            <span class="truncate">{site.repo_owner}/{site.repo_name}</span>
-            <span class="ml-2 shrink-0 px-1.5 py-px rounded-[5px] bg-raised border border-border text-muted text-[11.5px]">
-              {site.default_branch}
-            </span>
-          </span>
-
-          <span class="basis-[12%] shrink-0 text-[13px] text-muted">
-            {last_deploy_label(@statuses[site.id])}
-          </span>
-
-          <span class="flex-1 flex justify-end items-center gap-1 pr-4">
-            <a
-              href={"https://#{Sites.public_domain(site)}"}
-              target="_blank"
-              rel="noopener"
-              title="Open site"
-              class="w-[30px] h-[30px] rounded-md text-faint hover:text-text hover:bg-raised inline-flex items-center justify-center"
-            >
-              <.icon name="hero-arrow-top-right-on-square" class="size-4" />
-            </a>
-            <.link
-              phx-click={JS.push("delete", value: %{id: site.id})}
-              data-confirm={"Delete #{site.name}? This cannot be undone."}
-              id={"delete-#{site.id}"}
-              title="Delete site"
-              class="w-[30px] h-[30px] rounded-md text-faint hover:text-bad hover:bg-raised inline-flex items-center justify-center cursor-pointer"
-            >
-              <.icon name="hero-trash" class="size-4" />
-            </.link>
-          </span>
+            <div class="flex items-center gap-2 justify-end shrink-0">
+              <span class="hidden sm:block text-[13px] text-muted whitespace-nowrap">
+                {last_deploy_label(@statuses[site.id])}
+              </span>
+              <a
+                href={"https://#{Sites.public_domain(site)}"}
+                target="_blank"
+                rel="noopener"
+                title="Open site"
+                class="w-[30px] h-[30px] rounded-md text-faint hover:text-text hover:bg-raised inline-flex items-center justify-center"
+              >
+                <.icon name="hero-arrow-top-right-on-square" class="size-4" />
+              </a>
+              <.link
+                phx-click={JS.push("delete", value: %{id: site.id})}
+                data-confirm={"Delete #{site.name}? This cannot be undone."}
+                id={"delete-#{site.id}"}
+                title="Delete site"
+                class="w-[30px] h-[30px] rounded-md text-faint hover:text-bad hover:bg-raised inline-flex items-center justify-center cursor-pointer"
+              >
+                <.icon name="hero-trash" class="size-4" />
+              </.link>
+            </div>
+          </div>
         </div>
       </div>
 

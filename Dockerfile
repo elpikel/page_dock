@@ -97,6 +97,11 @@ ENV MIX_ENV="prod"
 # Only copy the final release from the build stage
 COPY --from=builder --chown=nobody:root /app/_build/${MIX_ENV}/rel/page_dock ./
 
+# DEPLOY_ROOT — where published site files are written. Create it owned by the
+# runtime user so that a mounted (empty) named volume inherits writable
+# ownership; otherwise the volume is root-owned and `nobody` can't write.
+RUN mkdir -p /data/deploys && chown -R nobody /data/deploys
+
 USER nobody
 
 # If using an environment that doesn't automatically reap zombie processes, it is

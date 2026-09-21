@@ -63,18 +63,24 @@ defmodule PageDockWeb.SiteLive.Show do
             to trigger one.
           </div>
           <div :if={@deployments != []} class="card divide-y divide-border" id="deployments">
-            <div
-              :for={deployment <- @deployments}
-              id={"deployment-#{deployment.id}"}
-              class="flex items-center justify-between gap-4 p-4 text-[14px]"
-            >
-              <div class="min-w-0">
-                <span class="font-mono text-text">{String.slice(deployment.commit_sha, 0, 7)}</span>
-                <span class="text-muted"> ·      {deployment.ref}</span>
+            <div :for={deployment <- @deployments} id={"deployment-#{deployment.id}"} class="p-4">
+              <div class="flex items-center justify-between gap-4 text-[14px]">
+                <div class="min-w-0">
+                  <span class="font-mono text-text">
+                    {String.slice(deployment.commit_sha, 0, 7)}
+                  </span>
+                  <span class="text-muted"> · {deployment.ref}</span>
+                </div>
+                <span class={["text-[13px] font-medium", status_color(deployment.status)]}>
+                  {deployment.status}
+                </span>
               </div>
-              <span class={["text-[13px] font-medium", status_color(deployment.status)]}>
-                {deployment.status}
-              </span>
+              <p
+                :if={deployment.error}
+                class="mt-2 text-[12px] font-mono text-bad break-all whitespace-pre-wrap"
+              >
+                {deployment.error}
+              </p>
             </div>
           </div>
         </div>
