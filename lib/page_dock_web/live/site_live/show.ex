@@ -69,7 +69,7 @@ defmodule PageDockWeb.SiteLive.Show do
                   <span class="font-mono text-text">
                     {String.slice(deployment.commit_sha, 0, 7)}
                   </span>
-                  <span class="text-muted"> · {deployment.ref}</span>
+                  <span class="text-muted"> ·  {deployment.ref}</span>
                 </div>
                 <span class={["text-[13px] font-medium", status_color(deployment.status)]}>
                   {deployment.status}
