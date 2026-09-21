@@ -70,7 +70,7 @@ defmodule PageDockWeb.SiteLive.Show do
             >
               <div class="min-w-0">
                 <span class="font-mono text-text">{String.slice(deployment.commit_sha, 0, 7)}</span>
-                <span class="text-muted"> ·     {deployment.ref}</span>
+                <span class="text-muted"> ·      {deployment.ref}</span>
               </div>
               <span class={["text-[13px] font-medium", status_color(deployment.status)]}>
                 {deployment.status}
@@ -104,12 +104,19 @@ defmodule PageDockWeb.SiteLive.Show do
          |> push_navigate(to: ~p"/sites")}
 
       site ->
+        if connected?(socket), do: Deployments.subscribe(site.id)
+
         {:ok,
          socket
          |> assign(:page_title, site.name)
          |> assign(:site, site)
          |> assign(:deployments, Deployments.list_deployments(site))}
     end
+  end
+
+  @impl true
+  def handle_info({:deployments_changed, _site_id}, socket) do
+    {:noreply, assign(socket, :deployments, Deployments.list_deployments(socket.assigns.site))}
   end
 
   defp status_color("success"), do: "text-ok"

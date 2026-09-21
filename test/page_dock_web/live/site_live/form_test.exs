@@ -2,10 +2,12 @@ defmodule PageDockWeb.SiteLive.FormTest do
   # async: false because we use Req.Test in shared mode so the LiveView process
   # (separate from the test process) sees the stubbed GitHub responses.
   use PageDockWeb.ConnCase, async: false
+  use Oban.Testing, repo: PageDock.Repo
 
   import Phoenix.LiveViewTest
   import PageDock.GithubFixtures
 
+  alias PageDock.Deployments.DeployWorker
   alias PageDock.Sites
 
   setup :register_and_log_in_user
@@ -56,6 +58,8 @@ defmodule PageDockWeb.SiteLive.FormTest do
     assert site.repo_name == "blog"
     assert site.slug == "my-blog"
     assert site.webhook_id == 999
+    # linking kicks off the first deploy automatically
+    assert_enqueued(worker: DeployWorker)
     assert_redirect(lv, ~p"/sites/#{site}")
   end
 end

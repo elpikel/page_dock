@@ -1,6 +1,7 @@
 defmodule PageDockWeb.SiteLive.Form do
   use PageDockWeb, :live_view
 
+  alias PageDock.Deployments
   alias PageDock.Github
   alias PageDock.Sites
   alias PageDock.Sites.Site
@@ -109,9 +110,14 @@ defmodule PageDockWeb.SiteLive.Form do
 
     case Sites.create_site(scope, params) do
       {:ok, site} ->
+        # Register the push webhook (best-effort) and kick off the first deploy
+        # right away, so the site goes live without waiting for a push.
+        webhook = Sites.register_webhook(site, socket.assigns.github_account, webhook_url(site))
+        Deployments.deploy(site, %{commit_sha: site.default_branch, ref: site.default_branch})
+
         {:noreply,
          socket
-         |> put_flash(:info, webhook_flash(site, socket.assigns.github_account))
+         |> put_flash(:info, link_flash(site, webhook))
          |> push_navigate(to: ~p"/sites/#{site}")}
 
       {:error, changeset} ->
@@ -119,17 +125,14 @@ defmodule PageDockWeb.SiteLive.Form do
     end
   end
 
-  # Register the push webhook so future pushes deploy. Best-effort: if GitHub
-  # rejects it, the site is still created and the user is told to reconnect.
-  defp webhook_flash(site, account) do
-    case Sites.register_webhook(site, account, webhook_url(site)) do
-      {:ok, _site} ->
-        "Linked #{site.name}. Pushes to #{site.default_branch} will deploy automatically."
+  defp link_flash(site, {:ok, _site}) do
+    "Linked #{site.name} and started its first deploy. " <>
+      "Pushes to #{site.default_branch} will deploy automatically."
+  end
 
-      {:error, _reason} ->
-        "Linked #{site.name}, but couldn't set up automatic deploys. " <>
-          "Check your GitHub permissions and try reconnecting."
-    end
+  defp link_flash(site, {:error, _reason}) do
+    "Linked #{site.name} and started its first deploy, but couldn't set up " <>
+      "automatic deploys — check your GitHub permissions and reconnect."
   end
 
   defp webhook_url(site) do

@@ -30,6 +30,20 @@ defmodule PageDockWeb.SiteLive.ShowTest do
     assert render(lv) =~ "Deploy queued"
   end
 
+  test "live-updates the deployment status without a refresh", %{conn: conn, user: user} do
+    site = site_fixture(user)
+
+    {:ok, deployment} =
+      PageDock.Deployments.create_deployment(site, %{commit_sha: "abc123", ref: "main"})
+
+    {:ok, lv, _html} = live(conn, ~p"/sites/#{site}")
+    assert render(lv) =~ "pending"
+
+    {:ok, _} = PageDock.Deployments.update_status(deployment, "success")
+
+    assert render(lv) =~ "success"
+  end
+
   test "redirects when the site does not belong to the user", %{conn: conn} do
     other = site_fixture(user_fixture())
 

@@ -10,6 +10,21 @@ defmodule PageDock.Deployments do
   alias PageDock.Repo
   alias PageDock.Sites.Site
 
+  @pubsub PageDock.PubSub
+
+  @doc """
+  Subscribes the caller to a site's deployment changes. The subscriber receives
+  `{:deployments_changed, site_id}` whenever a deployment is created or its
+  status changes.
+  """
+  def subscribe(site_id), do: Phoenix.PubSub.subscribe(@pubsub, topic(site_id))
+
+  defp topic(site_id), do: "site:#{site_id}:deployments"
+
+  defp broadcast(site_id) do
+    Phoenix.PubSub.broadcast(@pubsub, topic(site_id), {:deployments_changed, site_id})
+  end
+
   @doc "Lists a site's deployments, newest first."
   def list_deployments(%Site{id: site_id}, limit \\ 20) do
     Repo.all(
@@ -46,16 +61,24 @@ defmodule PageDock.Deployments do
 
   @doc "Creates a deployment record for a site."
   def create_deployment(%Site{id: site_id}, attrs) do
-    %Deployment{site_id: site_id}
-    |> Deployment.create_changeset(attrs)
-    |> Repo.insert()
+    result =
+      %Deployment{site_id: site_id}
+      |> Deployment.create_changeset(attrs)
+      |> Repo.insert()
+
+    with {:ok, _} <- result, do: broadcast(site_id)
+    result
   end
 
   @doc "Updates a deployment's status (and optional error message)."
-  def update_status(%Deployment{} = deployment, status, error \\ nil) do
-    deployment
-    |> Deployment.status_changeset(status, error)
-    |> Repo.update()
+  def update_status(%Deployment{site_id: site_id} = deployment, status, error \\ nil) do
+    result =
+      deployment
+      |> Deployment.status_changeset(status, error)
+      |> Repo.update()
+
+    with {:ok, _} <- result, do: broadcast(site_id)
+    result
   end
 
   @doc """
